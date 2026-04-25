@@ -1,0 +1,1632 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>XLeaders Academy | Banner Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lora:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=Raleway:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root {
+    --red: #C22620;
+    --gold: #D4AF37;
+    --white: #FFFFFF;
+    --black: #1A1A1A;
+    --navy: #1B2A4A;
+    --gray: #4A4A4A;
+    --cream: #FFF8E1;
+    --border: #E5E5E5;
+    --stage-bg: #F0F0F0;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--white); color: var(--black); font-family: 'Inter', system-ui, sans-serif; }
+
+  header, footer {
+    background: var(--red); color: var(--gold);
+    text-align: center;
+    font-family: 'Oswald', sans-serif;
+    letter-spacing: 0.5px;
+    position: sticky; z-index: 5;
+  }
+  header { padding: 16px 24px; font-size: 19px; font-weight: 600; top: 0; }
+  footer { padding: 14px 24px; font-size: 14px; font-weight: 500; bottom: 0; }
+  header .sep, footer .sep { opacity: 0.6; margin: 0 10px; }
+
+  main {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 16px;
+    padding: 16px;
+    align-items: stretch;
+  }
+
+  /* ===== LEFT PANEL ===== */
+  .panel {
+    background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+    max-height: calc(100vh - 110px); overflow-y: auto;
+  }
+  .panel::-webkit-scrollbar { width: 8px; }
+  .panel::-webkit-scrollbar-track { background: transparent; }
+  .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  .panel::-webkit-scrollbar-thumb:hover { background: var(--gray); }
+
+  .acc { border-bottom: 1px solid var(--border); }
+  .acc:last-child { border-bottom: none; }
+  .acc-hd {
+    width: 100%; text-align: left;
+    padding: 14px 16px;
+    font-family: 'Oswald', sans-serif;
+    font-size: 13px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.8px;
+    color: var(--red); background: var(--white);
+    border: none; cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .acc-hd:hover { background: var(--cream); }
+  .acc-hd::after { content: "▼"; font-size: 10px; color: var(--gray); transition: transform .2s; }
+  .acc.closed .acc-hd::after { transform: rotate(-90deg); }
+  .acc-body { padding: 12px 16px 16px; }
+  .acc.closed .acc-body { display: none; }
+
+  .field { margin-bottom: 12px; }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block; font-size: 11px; font-weight: 600;
+    color: var(--gray); margin-bottom: 5px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .field input[type="text"], .field select, .field input[type="date"] {
+    width: 100%; padding: 9px 11px;
+    font-family: 'Inter', sans-serif; font-size: 13px;
+    color: var(--black);
+    border: 2px solid var(--gold); border-radius: 6px;
+    outline: none; background: var(--white);
+    transition: border-color .15s ease;
+  }
+  .field input:focus, .field select:focus { border-color: var(--red); }
+
+  .range-row {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .range-row input[type="range"] { flex: 1; accent-color: var(--red); }
+  .range-val {
+    min-width: 48px; text-align: right;
+    font-size: 12px; font-weight: 600; color: var(--red);
+    font-family: 'Oswald', sans-serif;
+  }
+
+  .btn-toggle-group {
+    display: inline-flex; border: 2px solid var(--gold); border-radius: 6px; overflow: hidden;
+  }
+  .btn-toggle {
+    padding: 8px 14px; background: var(--white); color: var(--gray);
+    font-size: 13px; font-weight: 600; cursor: pointer; border: none;
+    border-right: 2px solid var(--gold);
+  }
+  .btn-toggle:last-child { border-right: none; }
+  .btn-toggle.on { background: var(--red); color: var(--white); }
+
+  .pos-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;
+    width: 120px;
+  }
+  .pos-cell {
+    aspect-ratio: 1; border: 2px solid var(--border); border-radius: 4px;
+    cursor: pointer; background: var(--white);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; color: var(--gray);
+  }
+  .pos-cell:hover { border-color: var(--gold); }
+  .pos-cell.on { background: var(--red); border-color: var(--red); }
+  .pos-cell.on::after { content: "●"; color: var(--gold); }
+
+  .templates {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px;
+  }
+  .tpl {
+    border: 2px solid var(--border); border-radius: 6px;
+    padding: 8px 4px; cursor: pointer;
+    text-align: center; font-size: 11px; font-weight: 600;
+    color: var(--gray); background: var(--white);
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .tpl:hover { border-color: var(--gold); }
+  .tpl.active { border-color: var(--red); background: var(--cream); color: var(--red); }
+  .tpl-swatch {
+    height: 40px; border-radius: 3px;
+    margin-bottom: 4px; border: 1px solid var(--border);
+    position: relative; overflow: hidden;
+  }
+  .tpl-group-label {
+    grid-column: 1 / -1;
+    font-size: 11px; font-weight: 600;
+    color: var(--gray); text-transform: uppercase; letter-spacing: 0.5px;
+    margin-top: 8px; padding-top: 6px;
+    border-top: 1px dashed var(--border);
+  }
+  .tpl-group-label:first-child { margin-top: 0; padding-top: 0; border-top: none; }
+
+  /* speaker uploads */
+  .speakers-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+  }
+  .speaker-slot {
+    aspect-ratio: 1; border: 2px dashed var(--gold); border-radius: 50%;
+    cursor: pointer; position: relative; overflow: hidden;
+    background: var(--cream); display: flex; align-items: center; justify-content: center;
+    color: var(--gold); font-size: 24px;
+  }
+  .speaker-slot img {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  }
+  .speaker-slot:hover { border-color: var(--red); }
+  .speaker-slot .remove-x {
+    position: absolute; top: 2px; right: 2px;
+    width: 22px; height: 22px; border-radius: 50%;
+    background: var(--red); color: var(--white);
+    display: none; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: bold; border: none; cursor: pointer;
+    z-index: 2;
+  }
+  .speaker-slot.has-img .remove-x { display: flex; }
+  .speaker-slot.has-img { border-style: solid; }
+
+  .warn {
+    background: #FDECEA; border: 1px solid var(--red); color: var(--red);
+    padding: 10px 12px; border-radius: 6px; font-size: 13px;
+    margin-top: 10px; display: none;
+  }
+  .warn.show { display: block; }
+
+  /* ===== PREVIEW ===== */
+  .preview-wrap {
+    background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px;
+    display: flex; flex-direction: column; gap: 12px;
+    position: sticky; top: 70px;
+    max-height: calc(100vh - 110px);
+  }
+  .stage {
+    width: 100%; flex: 1;
+    min-height: 300px; max-height: 65vh;
+    background: var(--stage-bg); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px; overflow: hidden;
+    position: relative;
+  }
+  .banner-wrap {
+    position: relative;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    overflow: hidden;
+  }
+  .banner {
+    position: absolute; top: 0; left: 0;
+    transform-origin: top left;
+    overflow: hidden;
+    --u: 1;
+    --title-size: 84;
+    --sub-size: 28;
+    --letter: 0;
+    --line: 1.1;
+    --word: 0;
+    --pad: 60;
+    --gap: 20;
+    --font-title: 'Oswald', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --align: center;
+    --img-pos: center 0%;
+    --img-zoom: 1;
+  }
+  .ruler-h, .ruler-v {
+    position: absolute; pointer-events: none;
+    background: rgba(194, 38, 32, 0.4);
+    display: none; z-index: 3;
+  }
+  .ruler-h { left: 0; right: 0; height: 1px; }
+  .ruler-v { top: 0; bottom: 0; width: 1px; }
+  .stage:hover .ruler-h, .stage:hover .ruler-v { display: block; }
+
+  .meta-line {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 12px; color: var(--gray); flex-wrap: wrap; gap: 8px;
+  }
+  .meta-line strong { color: var(--black); font-weight: 600; }
+
+  .btn-row { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+  button {
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+    padding: 10px 16px; border-radius: 6px;
+    border: 2px solid var(--red); cursor: pointer;
+    transition: background .15s ease, color .15s ease, border-color .15s ease;
+    letter-spacing: 0.3px; background: var(--white); color: var(--red);
+  }
+  button:disabled { opacity: 0.55; cursor: not-allowed; }
+  button:hover:not(:disabled) { background: var(--red); color: var(--white); }
+  .btn-primary { background: var(--red); color: var(--white); }
+  .btn-primary:hover:not(:disabled) { background: var(--gold); color: var(--black); border-color: var(--gold); }
+  .btn-mini { padding: 6px 10px; font-size: 12px; }
+
+  .toast {
+    position: fixed; bottom: 80px; left: 50%;
+    transform: translateX(-50%);
+    background: var(--black); color: var(--gold);
+    padding: 10px 18px; border-radius: 24px;
+    font-size: 13px; opacity: 0; pointer-events: none;
+    transition: opacity .2s ease; z-index: 100;
+    max-width: 80vw; text-align: center;
+  }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 1100px) { main { grid-template-columns: 1fr; } .preview-wrap { position: static; max-height: none; } }
+
+  /* ============================================================
+     TEMPLATES — 11 layouts
+     All use CSS vars: --u, --title-size, --sub-size, --letter, --line,
+     --word, --pad, --gap, --font-title, --font-body, --align
+     ============================================================ */
+  .tp { position: absolute; inset: 0; overflow: hidden; font-family: var(--font-body); }
+  .tp-wm {
+    position: absolute; right: calc(40px * var(--u)); bottom: calc(30px * var(--u));
+    font-family: var(--font-body); font-weight: 500;
+    font-size: calc(22px * var(--u));
+  }
+  .tp-title {
+    font-family: var(--font-title); font-weight: 700;
+    font-size: calc(var(--title-size) * 1px * var(--u));
+    line-height: var(--line);
+    letter-spacing: calc(var(--letter) * 1px * var(--u));
+    word-spacing: calc(var(--word) * 1px * var(--u));
+    text-align: var(--align);
+    word-wrap: break-word; overflow-wrap: break-word;
+  }
+  .tp-sub {
+    font-family: var(--font-body); font-weight: 500;
+    font-size: calc(var(--sub-size) * 1px * var(--u));
+    line-height: var(--line);
+    letter-spacing: calc(var(--letter) * 0.4px * var(--u));
+    text-align: var(--align);
+  }
+  .tp-content {
+    position: absolute;
+    top: calc(var(--pad) * 1px * var(--u));
+    left: calc(var(--pad) * 1px * var(--u));
+    right: calc(var(--pad) * 1px * var(--u));
+    bottom: calc(var(--pad) * 1px * var(--u));
+    display: flex; flex-direction: column;
+    align-items: var(--flex-align, center);
+    justify-content: var(--flex-justify, center);
+    gap: calc(var(--gap) * 1px * var(--u));
+    text-align: var(--align);
+  }
+  .tp-brand {
+    font-family: var(--font-title); font-weight: 600;
+    font-size: calc(36px * var(--u));
+    letter-spacing: 0.05em;
+  }
+  .tp-divider {
+    width: calc(160px * var(--u)); height: calc(3px * var(--u));
+    background: currentColor; opacity: 0.7;
+  }
+  .tp-course {
+    font-family: var(--font-body); font-weight: 500;
+    font-size: calc(var(--sub-size) * 1.2px * var(--u));
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .tp-meta {
+    display: flex; flex-direction: column;
+    gap: calc(6px * var(--u));
+    align-items: inherit;
+    font-family: var(--font-body);
+  }
+  .tp-instructor {
+    font-family: var(--font-title); font-weight: 600;
+    font-size: calc(var(--sub-size) * 1.5px * var(--u));
+  }
+  .tp-date {
+    font-family: var(--font-body); font-weight: 500;
+    font-size: calc(var(--sub-size) * 1px * var(--u));
+    opacity: 0.9;
+  }
+  .tp-label {
+    font-family: var(--font-body); font-weight: 500;
+    font-size: calc(var(--sub-size) * 0.8px * var(--u));
+    letter-spacing: 0.25em; text-transform: uppercase; opacity: 0.85;
+  }
+
+  /* ===== Photo containers (aspect-locked, no distortion on export) ===== */
+  .photo-frame {
+    position: relative;
+    overflow: hidden;
+    background: var(--cream);
+    box-sizing: border-box;
+  }
+  .photo-frame::before {
+    content: '';
+    display: block;
+    padding-bottom: 0;
+  }
+  .photo-frame.photo-1-1::before { padding-bottom: 100%; }
+  .photo-frame.photo-3-4::before { padding-bottom: 133.3333%; }
+  .photo-frame.photo-circle { border-radius: 50%; }
+  .photo-frame.photo-fill::before { display: none; }
+  .photo-img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    object-position: var(--img-pos, center 0%);
+    transform: scale(var(--img-zoom, 1));
+    transform-origin: center center;
+    display: block;
+  }
+  .photo-ph {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    opacity: 0.5;
+    font-size: inherit;
+  }
+
+  /* Template 1 — Red vertical */
+  .tp1 { background: var(--red); color: var(--white); }
+  .tp1 .tp-bar { position: absolute; left: 0; right: 0; height: calc(12px * var(--u)); background: var(--gold); }
+  .tp1 .tp-bar-top { top: 0; }
+  .tp1 .tp-bar-bottom { bottom: 0; }
+  .tp1 .tp-title { color: var(--gold); }
+  .tp1 .tp-brand { color: var(--gold); }
+  .tp1 .tp-instructor { color: var(--gold); }
+  .tp1 .tp-divider { background: var(--gold); }
+  .tp1 .tp-wm { color: var(--gold); }
+
+  /* Template 2 — White horizontal split */
+  .tp2 { background: var(--white); color: var(--black); }
+  .tp2-frame {
+    position: absolute; top: calc(40px * var(--u)); left: calc(40px * var(--u));
+    right: calc(40px * var(--u)); bottom: calc(40px * var(--u));
+    border: calc(12px * var(--u)) solid var(--red);
+    display: flex;
+  }
+  .tp2-left { flex: 0 0 38%; background: var(--red); color: var(--gold);
+    display: flex; align-items: center; justify-content: center; padding: calc(30px * var(--u)); text-align: center; }
+  .tp2-left .tp-brand { color: var(--gold); font-size: calc(48px * var(--u)); line-height: 1.15; }
+  .tp2-left .tp-tagline { color: var(--white); font-size: calc(24px * var(--u)); margin-top: calc(16px * var(--u)); }
+  .tp2-left .tp-divider { background: var(--gold); margin: calc(16px * var(--u)) auto; }
+  .tp2-right { flex: 1; padding: calc(var(--pad) * 0.8px * var(--u));
+    display: flex; flex-direction: column; justify-content: space-between; text-align: left !important; }
+  .tp2-right .tp-course { color: var(--red); font-weight: 600; font-family: var(--font-title); text-align: left; }
+  .tp2-right .tp-accent-line { width: calc(80px * var(--u)); height: calc(4px * var(--u)); background: var(--red); margin: calc(10px * var(--u)) 0 calc(24px * var(--u)); }
+  .tp2-right .tp-title { color: var(--black); text-align: left; }
+  .tp2-right .tp-meta { text-align: left; align-items: flex-start; }
+  .tp2-right .tp-instructor { color: var(--black); }
+  .tp2-right .tp-date { color: var(--red); }
+  .tp2 .tp-wm { color: var(--red); bottom: calc(60px * var(--u)); right: calc(60px * var(--u)); }
+
+  /* Template 3 — Black corners */
+  .tp3 { background: var(--black); color: var(--white); }
+  .tp3-frame { position: absolute; top: calc(80px * var(--u)); left: calc(80px * var(--u)); right: calc(80px * var(--u)); bottom: calc(80px * var(--u));
+    border: calc(2px * var(--u)) solid var(--gold); }
+  .tp3-corner { position: absolute; width: calc(90px * var(--u)); height: calc(90px * var(--u)); pointer-events: none; }
+  .tp3-corner-tl { top: calc(60px * var(--u)); left: calc(60px * var(--u)); border-top: calc(5px * var(--u)) solid var(--gold); border-left: calc(5px * var(--u)) solid var(--gold); }
+  .tp3-corner-tr { top: calc(60px * var(--u)); right: calc(60px * var(--u)); border-top: calc(5px * var(--u)) solid var(--gold); border-right: calc(5px * var(--u)) solid var(--gold); }
+  .tp3-corner-bl { bottom: calc(60px * var(--u)); left: calc(60px * var(--u)); border-bottom: calc(5px * var(--u)) solid var(--gold); border-left: calc(5px * var(--u)) solid var(--gold); }
+  .tp3-corner-br { bottom: calc(60px * var(--u)); right: calc(60px * var(--u)); border-bottom: calc(5px * var(--u)) solid var(--gold); border-right: calc(5px * var(--u)) solid var(--gold); }
+  .tp3 .tp-brand { color: var(--gold); }
+  .tp3 .tp-title { color: var(--gold); }
+  .tp3 .tp-instructor { color: var(--gold); }
+  .tp3 .tp-divider { background: var(--gold); }
+  .tp3 .tp-wm { color: var(--gold); bottom: calc(100px * var(--u)); right: calc(100px * var(--u)); }
+
+  /* Template 4 — Split top/bottom */
+  .tp4 { background: var(--white); color: var(--black); }
+  .tp4-top { position: absolute; top: 0; left: 0; right: 0; height: 50%; background: var(--black); color: var(--white);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: calc(var(--pad) * 1px * var(--u)); gap: calc(var(--gap) * 1px * var(--u)); }
+  .tp4-bot { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: var(--white);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: calc(var(--pad) * 1px * var(--u)); gap: calc(var(--gap) * 0.6px * var(--u)); }
+  .tp4-top .tp-brand { color: var(--gold); font-size: calc(44px * var(--u)); }
+  .tp4-top .tp-course { color: var(--red); font-weight: 600; }
+  .tp4-bot .tp-title { color: var(--black); }
+  .tp4-bot .tp-instructor { color: var(--red); }
+  .tp4 .tp-accent { width: calc(120px * var(--u)); height: calc(4px * var(--u)); background: var(--gold); }
+  .tp4 .tp-wm { color: var(--red); }
+
+  /* Template 5 — Minimal line */
+  .tp5 { background: var(--white); color: var(--black); }
+  .tp5 .tp-content { align-items: var(--flex-align, flex-start); }
+  .tp5 .tp-accent { width: calc(120px * var(--u)); height: calc(6px * var(--u)); background: var(--red); }
+  .tp5 .tp-brand { color: var(--red); font-size: calc(28px * var(--u)); letter-spacing: 0.15em; }
+  .tp5 .tp-course { color: var(--red); text-align: inherit; }
+  .tp5 .tp-title { color: var(--black); }
+  .tp5 .tp-instructor { color: var(--black); }
+  .tp5 .tp-date { color: var(--gray); }
+  .tp5 .tp-wm { color: var(--red); }
+
+  /* Template 6 — Gold frame black */
+  .tp6 { background: var(--black); color: var(--white); }
+  .tp6-frame { position: absolute; top: calc(50px * var(--u)); left: calc(50px * var(--u)); right: calc(50px * var(--u)); bottom: calc(50px * var(--u));
+    border: calc(12px * var(--u)) solid var(--gold); }
+  .tp6-inner-frame { position: absolute; top: calc(70px * var(--u)); left: calc(70px * var(--u)); right: calc(70px * var(--u)); bottom: calc(70px * var(--u));
+    border: calc(2px * var(--u)) solid var(--gold); }
+  .tp6 .tp-brand { color: var(--gold); }
+  .tp6 .tp-title { color: var(--gold); }
+  .tp6 .tp-instructor { color: var(--gold); }
+  .tp6 .tp-divider { background: var(--gold); }
+  .tp6 .tp-wm { color: var(--gold); bottom: calc(100px * var(--u)); right: calc(100px * var(--u)); }
+
+  /* Template 7 — Magazine */
+  .tp7 { background: var(--white); color: var(--black); }
+  .tp7-grid { position: absolute; top: calc(var(--pad) * 1px * var(--u)); left: calc(var(--pad) * 1px * var(--u));
+    right: calc(var(--pad) * 1px * var(--u)); bottom: calc(var(--pad) * 1px * var(--u));
+    display: grid; grid-template-columns: 1fr 1fr; gap: calc(40px * var(--u)); }
+  .tp7-left { display: flex; flex-direction: column; justify-content: space-between; border-right: calc(3px * var(--u)) solid var(--red); padding-right: calc(30px * var(--u)); }
+  .tp7-left .tp-brand { color: var(--red); font-family: var(--font-title); font-weight: 700; font-size: calc(38px * var(--u)); }
+  .tp7-left .tp-title { color: var(--red); text-align: left; }
+  .tp7-left .tp-tagline { color: var(--black); font-size: calc(22px * var(--u)); }
+  .tp7-right { display: flex; flex-direction: column; justify-content: center; gap: calc(16px * var(--u)); }
+  .tp7-right .tp-course { color: var(--red); font-weight: 600; letter-spacing: 0.2em; font-size: calc(24px * var(--u)); }
+  .tp7-right .tp-sub-title { color: var(--black); font-family: var(--font-body); font-weight: 500; font-size: calc(26px * var(--u)); line-height: 1.5; }
+  .tp7-right .tp-instructor { color: var(--black); font-size: calc(32px * var(--u)); }
+  .tp7-right .tp-date { color: var(--red); font-weight: 600; }
+  .tp7-right hr { border: none; border-top: calc(1px * var(--u)) solid var(--black); margin: calc(6px * var(--u)) 0; opacity: 0.25; }
+  .tp7 .tp-wm { color: var(--red); }
+
+  /* Template 8 — Executive navy */
+  .tp8 { background: var(--navy); color: var(--white); }
+  .tp8-accent-bar { position: absolute; top: 0; left: 0; right: 0; height: calc(16px * var(--u)); background: var(--red); }
+  .tp8-side-bar { position: absolute; top: 0; bottom: 0; left: 0; width: calc(16px * var(--u)); background: var(--gold); }
+  .tp8 .tp-brand { color: var(--gold); }
+  .tp8 .tp-title { color: var(--white); }
+  .tp8 .tp-instructor { color: var(--gold); }
+  .tp8 .tp-divider { background: var(--gold); }
+  .tp8 .tp-course { color: var(--gold); }
+  .tp8 .tp-wm { color: var(--gold); }
+
+  /* Template 9 — Speaker 1 photo (left red + right photo) */
+  .tp9 { background: var(--white); color: var(--black); }
+  .tp9-left { position: absolute; top: 0; left: 0; bottom: 0; width: 55%; background: var(--red); color: var(--white);
+    display: flex; flex-direction: column; justify-content: center; padding: calc(var(--pad) * 1px * var(--u)); gap: calc(var(--gap) * 1px * var(--u)); }
+  .tp9-right { position: absolute; top: 0; right: 0; bottom: 0; width: 45%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: calc(var(--pad) * 1px * var(--u)); gap: calc(20px * var(--u)); }
+  .tp9-left .tp-brand { color: var(--gold); }
+  .tp9-left .tp-course { color: var(--gold); }
+  .tp9-left .tp-title { color: var(--white); text-align: left; }
+  .tp9-left .tp-date { color: var(--gold); }
+  .tp9-left .tp-accent { width: calc(120px * var(--u)); height: calc(4px * var(--u)); background: var(--gold); }
+  .tp9-photo {
+    width: calc(500px * var(--u));
+    max-width: 80%;
+    border: calc(8px * var(--u)) solid var(--gold);
+    color: var(--gold); font-size: calc(120px * var(--u));
+  }
+  .tp9-right .tp-instructor-label { font-size: calc(22px * var(--u)); color: var(--gray); letter-spacing: 0.2em; text-transform: uppercase; }
+  .tp9-right .tp-instructor { color: var(--black); text-align: center; }
+  .tp9 .tp-wm { color: var(--gold); }
+
+  /* Template 10 — Speaker 3 photos row */
+  .tp10 { background: var(--white); color: var(--black); }
+  .tp10-header { position: absolute; top: calc(var(--pad) * 1px * var(--u)); left: calc(var(--pad) * 1px * var(--u)); right: calc(var(--pad) * 1px * var(--u));
+    display: flex; flex-direction: column; align-items: center; gap: calc(var(--gap) * 0.5px * var(--u)); text-align: center; }
+  .tp10-accent-bar { position: absolute; top: 0; left: 0; right: 0; height: calc(14px * var(--u)); background: var(--red); }
+  .tp10-header .tp-brand { color: var(--red); font-weight: 700; }
+  .tp10-header .tp-course { color: var(--gray); }
+  .tp10-header .tp-title { color: var(--black); }
+  .tp10-divider { width: calc(200px * var(--u)); height: calc(3px * var(--u)); background: var(--gold); margin: calc(10px * var(--u)) 0; }
+  .tp10-speakers {
+    position: absolute; bottom: calc(var(--pad) * 1.4px * var(--u));
+    left: calc(var(--pad) * 1px * var(--u)); right: calc(var(--pad) * 1px * var(--u));
+    display: flex; justify-content: center; gap: calc(40px * var(--u));
+  }
+  .tp10-speaker { display: flex; flex-direction: column; align-items: center; gap: calc(10px * var(--u)); flex: 1; max-width: calc(280px * var(--u)); }
+  .tp10-circle {
+    width: calc(220px * var(--u));
+    border: calc(5px * var(--u)) solid var(--red);
+    color: var(--red); font-size: calc(80px * var(--u));
+  }
+  .tp10-name {
+    font-family: var(--font-title); font-weight: 600;
+    font-size: calc(28px * var(--u)); color: var(--black); text-align: center;
+  }
+  .tp10 .tp-date { color: var(--red); font-weight: 600; }
+  .tp10 .tp-wm { color: var(--red); }
+
+  /* Template 11 — Speaker featured (left photo + right black) */
+  .tp11 { background: var(--black); color: var(--white); }
+  .tp11-photo {
+    position: absolute; top: 0; left: 0; bottom: 0; width: 40%;
+    color: var(--red); font-size: calc(200px * var(--u));
+  }
+  .tp11-right { position: absolute; top: 0; right: 0; bottom: 0; width: 60%; background: var(--black);
+    display: flex; flex-direction: column; justify-content: center;
+    padding: calc(var(--pad) * 1px * var(--u)); gap: calc(var(--gap) * 1px * var(--u)); }
+  .tp11-right .tp-brand { color: var(--gold); font-size: calc(34px * var(--u)); letter-spacing: 0.15em; }
+  .tp11-right .tp-accent { width: calc(100px * var(--u)); height: calc(4px * var(--u)); background: var(--gold); }
+  .tp11-right .tp-course { color: var(--gold); }
+  .tp11-right .tp-title { color: var(--white); text-align: left; }
+  .tp11-right .tp-instructor { color: var(--gold); text-align: left; }
+  .tp11-right .tp-date { color: var(--white); opacity: 0.8; text-align: left; }
+  .tp11-right .tp-meta { align-items: flex-start; text-align: left; }
+  .tp11 .tp-wm { color: var(--gold); }
+
+  /* Edit hover */
+  [data-editable]:hover { outline: 2px dashed rgba(212, 175, 55, 0.7); outline-offset: 4px; cursor: text; }
+  [data-editable][contenteditable="true"] { outline: 2px solid var(--gold); outline-offset: 4px; cursor: text; }
+  [data-draggable] { cursor: grab; }
+  [data-draggable]:active { cursor: grabbing; }
+</style>
+</head>
+<body>
+
+<header>
+  <span>XLeaders Academy</span>
+  <span class="sep">|</span>
+  <span>Banner Generator</span>
+</header>
+
+<main>
+  <aside class="panel" id="panel">
+    <!-- Accordion: Nội dung -->
+    <div class="acc" data-acc="content">
+      <button class="acc-hd">Nội dung</button>
+      <div class="acc-body">
+        <div class="field">
+          <label for="course">Tên khóa học</label>
+          <input type="text" id="course" />
+        </div>
+        <div class="field">
+          <label for="topic">Chủ đề buổi học</label>
+          <input type="text" id="topic" />
+        </div>
+        <div class="field">
+          <label>Tên giảng viên (tối đa 3)</label>
+          <input type="text" id="instructor1" placeholder="Giảng viên 1" style="margin-bottom:6px;" />
+          <input type="text" id="instructor2" placeholder="Giảng viên 2 (tùy chọn)" style="margin-bottom:6px;" />
+          <input type="text" id="instructor3" placeholder="Giảng viên 3 (tùy chọn)" />
+        </div>
+        <div class="field">
+          <label for="date">Ngày tháng</label>
+          <input type="text" id="date" />
+        </div>
+        <div class="field">
+          <label>Ảnh diễn giả (tối đa 3)</label>
+          <div class="speakers-row">
+            <label class="speaker-slot" data-slot="0">
+              <input type="file" accept="image/*" style="display:none;" />
+              <span class="ph">+</span>
+              <button class="remove-x" type="button" title="Xóa">×</button>
+            </label>
+            <label class="speaker-slot" data-slot="1">
+              <input type="file" accept="image/*" style="display:none;" />
+              <span class="ph">+</span>
+              <button class="remove-x" type="button" title="Xóa">×</button>
+            </label>
+            <label class="speaker-slot" data-slot="2">
+              <input type="file" accept="image/*" style="display:none;" />
+              <span class="ph">+</span>
+              <button class="remove-x" type="button" title="Xóa">×</button>
+            </label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Vị trí ảnh (0 = trên, 100 = dưới)</label>
+          <div class="range-row"><input type="range" id="img-pos" min="0" max="100" value="0"><span class="range-val" id="img-pos-val">0%</span></div>
+        </div>
+        <div class="field">
+          <label>Phóng to ảnh</label>
+          <div class="range-row"><input type="range" id="img-zoom" min="100" max="150" value="100" step="1"><span class="range-val" id="img-zoom-val">100%</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion: Kích thước & Mẫu -->
+    <div class="acc" data-acc="layout">
+      <button class="acc-hd">Kích thước & mẫu</button>
+      <div class="acc-body">
+        <div class="field">
+          <label for="size">Kích thước xuất</label>
+          <select id="size">
+            <optgroup label="Slide / Banner">
+              <option value="slide">Slide 16:9 — 1920 × 1080</option>
+            </optgroup>
+            <optgroup label="Ảnh đại diện">
+              <option value="fb-avatar">Facebook Avatar — 1080 × 1080</option>
+              <option value="zalo-avatar">Zalo Avatar — 1080 × 1080</option>
+            </optgroup>
+            <optgroup label="Ảnh bìa">
+              <option value="fb-cover">Facebook Cover — 1640 × 624</option>
+              <option value="zalo-cover">Zalo Cover — 1920 × 720</option>
+            </optgroup>
+            <optgroup label="Bài đăng Facebook">
+              <option value="fb-post-square">FB Post vuông — 1080 × 1080</option>
+              <option value="fb-post-land">FB Post ngang — 1200 × 630</option>
+              <option value="fb-post-port">FB Post dọc — 1080 × 1350</option>
+              <option value="fb-story">FB Story / Reels — 1080 × 1920</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="field">
+          <label>Chọn mẫu</label>
+          <div class="templates" id="tpl-list"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion: Typography -->
+    <div class="acc" data-acc="typo">
+      <button class="acc-hd">Typography</button>
+      <div class="acc-body">
+        <div class="field">
+          <label for="font-title">Font tiêu đề</label>
+          <select id="font-title">
+            <option>Oswald</option>
+            <option>Inter</option>
+            <option>Playfair Display</option>
+            <option>Montserrat</option>
+            <option>Raleway</option>
+            <option>Lora</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="font-body">Font nội dung</label>
+          <select id="font-body">
+            <option>Inter</option>
+            <option>Oswald</option>
+            <option>Playfair Display</option>
+            <option>Montserrat</option>
+            <option>Raleway</option>
+            <option>Lora</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Cỡ chữ tiêu đề</label>
+          <div class="range-row"><input type="range" id="title-size" min="24" max="120" value="84"><span class="range-val" id="title-size-val">84px</span></div>
+        </div>
+        <div class="field">
+          <label>Cỡ chữ phụ</label>
+          <div class="range-row"><input type="range" id="sub-size" min="12" max="48" value="28"><span class="range-val" id="sub-size-val">28px</span></div>
+        </div>
+        <div class="field">
+          <label>Căn chỉnh</label>
+          <div class="btn-toggle-group" id="align-group">
+            <button class="btn-toggle" data-align="left">Trái</button>
+            <button class="btn-toggle on" data-align="center">Giữa</button>
+            <button class="btn-toggle" data-align="right">Phải</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Letter spacing</label>
+          <div class="range-row"><input type="range" id="letter" min="-2" max="10" value="0" step="0.1"><span class="range-val" id="letter-val">0px</span></div>
+        </div>
+        <div class="field">
+          <label>Line height</label>
+          <div class="range-row"><input type="range" id="line" min="1.0" max="2.5" value="1.1" step="0.05"><span class="range-val" id="line-val">1.10</span></div>
+        </div>
+        <div class="field">
+          <label>Word spacing</label>
+          <div class="range-row"><input type="range" id="word" min="-2" max="10" value="0" step="0.1"><span class="range-val" id="word-val">0px</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion: Spacing -->
+    <div class="acc" data-acc="spacing">
+      <button class="acc-hd">Khoảng cách & vị trí</button>
+      <div class="acc-body">
+        <div class="field">
+          <label>Padding tổng thể</label>
+          <div class="range-row"><input type="range" id="pad" min="0" max="120" value="60"><span class="range-val" id="pad-val">60px</span></div>
+        </div>
+        <div class="field">
+          <label>Khoảng cách giữa các thành phần</label>
+          <div class="range-row"><input type="range" id="gap" min="0" max="60" value="20"><span class="range-val" id="gap-val">20px</span></div>
+        </div>
+        <div class="field">
+          <label>Vị trí nội dung</label>
+          <div class="pos-grid" id="pos-grid">
+            <div class="pos-cell" data-pos="tl"></div>
+            <div class="pos-cell" data-pos="tc"></div>
+            <div class="pos-cell" data-pos="tr"></div>
+            <div class="pos-cell" data-pos="ml"></div>
+            <div class="pos-cell on" data-pos="mc"></div>
+            <div class="pos-cell" data-pos="mr"></div>
+            <div class="pos-cell" data-pos="bl"></div>
+            <div class="pos-cell" data-pos="bc"></div>
+            <div class="pos-cell" data-pos="br"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Accordion: Tiện ích -->
+    <div class="acc closed" data-acc="utils">
+      <button class="acc-hd">Tiện ích</button>
+      <div class="acc-body">
+        <div class="field">
+          <button class="btn-mini" id="btn-autofit" style="width: 100%;">Tự động căn chỉnh</button>
+          <div class="warn" id="warn-overflow">Cảnh báo: một số dòng văn bản quá dài, có thể bị tràn. Hãy bấm "Tự động căn chỉnh" hoặc giảm cỡ chữ.</div>
+        </div>
+        <div class="field">
+          <label>Preset</label>
+          <div class="btn-row" style="justify-content: flex-start;">
+            <button class="btn-mini" id="btn-save-preset">Lưu preset</button>
+            <button class="btn-mini" id="btn-load-preset">Tải preset</button>
+            <button class="btn-mini" id="btn-reset">Reset</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Chất lượng JPG</label>
+          <div class="range-row"><input type="range" id="jpg-q" min="60" max="100" value="92"><span class="range-val" id="jpg-q-val">92%</span></div>
+        </div>
+        <div class="field" style="font-size: 11px; color: var(--gray); line-height: 1.5;">
+          <strong>Phím tắt:</strong> <code>Space</code> tạo preview · <code>Ctrl+S</code> tải PNG · <code>Ctrl+Z</code>/<code>Ctrl+Y</code> undo/redo · click vào text trên preview để chỉnh sửa trực tiếp.
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <section class="preview-wrap">
+    <div class="stage" id="stage">
+      <div class="ruler-h" id="ruler-h"></div>
+      <div class="ruler-v" id="ruler-v"></div>
+      <div class="banner-wrap" id="banner-wrap">
+        <div class="banner" id="banner"></div>
+      </div>
+    </div>
+    <div class="meta-line">
+      <span id="meta-size">Slide 16:9 — 1920 × 1080 px</span>
+      <span id="tpl-label">Mẫu 1 — Đỏ dọc</span>
+    </div>
+    <div class="btn-row">
+      <button id="btn-render">Tạo preview</button>
+      <button id="btn-copy">Copy clipboard</button>
+      <button id="btn-jpg">Tải JPG</button>
+      <button id="btn-zip">Tải ZIP tất cả</button>
+      <button class="btn-primary" id="btn-png">Tải PNG 2x</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>XLeaders Academy</span>
+  <span class="sep">|</span>
+  <span>xleader.edu.vn</span>
+</footer>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(function() {
+  const $ = (id) => document.getElementById(id);
+  const banner = $('banner');
+  const wrap = $('banner-wrap');
+  const stage = $('stage');
+  const toast = $('toast');
+
+  // ====== SIZES ======
+  const SIZES = {
+    'slide':          { w: 1920, h: 1080, label: 'Slide 16:9' },
+    'fb-avatar':      { w: 1080, h: 1080, label: 'Facebook Avatar' },
+    'zalo-avatar':    { w: 1080, h: 1080, label: 'Zalo Avatar' },
+    'fb-cover':       { w: 1640, h: 624,  label: 'Facebook Cover' },
+    'zalo-cover':     { w: 1920, h: 720,  label: 'Zalo Cover' },
+    'fb-post-square': { w: 1080, h: 1080, label: 'FB Post vuông' },
+    'fb-post-land':   { w: 1200, h: 630,  label: 'FB Post ngang' },
+    'fb-post-port':   { w: 1080, h: 1350, label: 'FB Post dọc' },
+    'fb-story':       { w: 1080, h: 1920, label: 'FB Story/Reels' }
+  };
+
+  // ====== TEMPLATE META ======
+  const TEMPLATES = [
+    { id: 1,  name: 'Mẫu 1', desc: 'Đỏ dọc',         needsImg: false, swatchCss: 'background:#C22620;' },
+    { id: 2,  name: 'Mẫu 2', desc: 'Trắng ngang',    needsImg: false, swatchCss: 'background:#FFF;box-shadow:inset 0 0 0 3px #C22620;' },
+    { id: 3,  name: 'Mẫu 3', desc: 'Đen sang trọng', needsImg: false, swatchCss: 'background:#1A1A1A;' },
+    { id: 4,  name: 'Mẫu 4', desc: 'Split đen/trắng',needsImg: false, swatchCss: 'background:linear-gradient(#1A1A1A 50%,#fff 50%);' },
+    { id: 5,  name: 'Mẫu 5', desc: 'Tối giản',       needsImg: false, swatchCss: 'background:#fff;box-shadow:inset 10px 0 0 #C22620;' },
+    { id: 6,  name: 'Mẫu 6', desc: 'Khung vàng',     needsImg: false, swatchCss: 'background:#1A1A1A;box-shadow:inset 0 0 0 3px #D4AF37;' },
+    { id: 7,  name: 'Mẫu 7', desc: 'Magazine',       needsImg: false, swatchCss: 'background:linear-gradient(90deg,#fff 50%,#fff 50%);border-right:3px solid #C22620 !important;' },
+    { id: 8,  name: 'Mẫu 8', desc: 'Executive navy', needsImg: false, swatchCss: 'background:#1B2A4A;' },
+    { id: 9,  name: 'Mẫu 9', desc: 'Speaker 1 ảnh',  needsImg: true,  swatchCss: 'background:linear-gradient(90deg,#C22620 55%,#D4AF37 55%);' },
+    { id: 10, name: 'Mẫu 10',desc: 'Speaker 3 ảnh',  needsImg: true,  swatchCss: 'background:#fff;box-shadow:inset 0 4px 0 #C22620;' },
+    { id: 11, name: 'Mẫu 11',desc: 'Speaker featured',needsImg: true, swatchCss: 'background:linear-gradient(90deg,#D4AF37 40%,#1A1A1A 40%);' }
+  ];
+
+  // ====== STATE ======
+  const DEFAULT_STATE = {
+    course: 'MTCV CEO K09',
+    topic: 'Tư duy lãnh đạo chiến lược',
+    instructors: ['TS. Nguyễn Văn A', '', ''],
+    date: '',
+    speakers: [null, null, null],
+    size: 'slide',
+    template: 1,
+    fontTitle: 'Oswald',
+    fontBody: 'Inter',
+    titleSize: 84,
+    subSize: 28,
+    align: 'center',
+    letter: 0,
+    line: 1.1,
+    word: 0,
+    pad: 60,
+    gap: 20,
+    pos: 'mc',
+    offsets: {},
+    jpgQ: 92,
+    imgPos: 0,
+    imgZoom: 100
+  };
+  let state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+  // Today
+  const d0 = new Date();
+  state.date = `${String(d0.getDate()).padStart(2,'0')}/${String(d0.getMonth()+1).padStart(2,'0')}/${d0.getFullYear()}`;
+
+  // ====== HISTORY (undo/redo) ======
+  const history = [];
+  let hIdx = -1;
+  let suppressPush = false;
+  function pushHistory() {
+    if (suppressPush) return;
+    const snap = JSON.stringify(state);
+    if (history[hIdx] === snap) return;
+    history.splice(hIdx + 1);
+    history.push(snap);
+    if (history.length > 50) history.shift();
+    hIdx = history.length - 1;
+  }
+  function undo() {
+    if (hIdx <= 0) return;
+    hIdx--;
+    state = JSON.parse(history[hIdx]);
+    suppressPush = true;
+    syncUI(); render();
+    suppressPush = false;
+    showToast('Hoàn tác');
+  }
+  function redo() {
+    if (hIdx >= history.length - 1) return;
+    hIdx++;
+    state = JSON.parse(history[hIdx]);
+    suppressPush = true;
+    syncUI(); render();
+    suppressPush = false;
+    showToast('Làm lại');
+  }
+
+  // ====== UTIL ======
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 1800);
+  }
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function sanitize(s) {
+    return (s || '').replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, '_');
+  }
+
+  // ====== BUILD TEMPLATE HTML ======
+  function buildHTML(tplId, st) {
+    const courseU = escapeHtml((st.course || '').toUpperCase());
+    const course = escapeHtml(st.course || '');
+    const topic = escapeHtml(st.topic || '');
+    const instr0 = escapeHtml(st.instructors[0] || '');
+    const instr1 = escapeHtml(st.instructors[1] || '');
+    const instr2 = escapeHtml(st.instructors[2] || '');
+    const instrs = [instr0, instr1, instr2].filter(Boolean);
+    const instrsJoin = instrs.join(' · ') || '&nbsp;';
+    const date = escapeHtml(st.date || '');
+    const brand = 'XLeaders Academy';
+    const wm = 'xleader.edu.vn';
+
+    const posMap = {
+      tl: { a: 'flex-start', j: 'flex-start' }, tc: { a: 'center', j: 'flex-start' }, tr: { a: 'flex-end', j: 'flex-start' },
+      ml: { a: 'flex-start', j: 'center' },     mc: { a: 'center', j: 'center' },     mr: { a: 'flex-end', j: 'center' },
+      bl: { a: 'flex-start', j: 'flex-end' },   bc: { a: 'center', j: 'flex-end' },   br: { a: 'flex-end', j: 'flex-end' }
+    };
+    const pos = posMap[st.pos] || posMap.mc;
+    const posStyle = `--flex-align:${pos.a};--flex-justify:${pos.j};`;
+
+    const title = `<div class="tp-title" data-editable data-key="topic" data-draggable>${topic}</div>`;
+    const courseEl = `<div class="tp-course" data-editable data-key="course" data-draggable>${courseU}</div>`;
+    const dateEl = `<div class="tp-date" data-editable data-key="date" data-draggable>${date}</div>`;
+    const brandEl = `<div class="tp-brand">${brand.toUpperCase()}</div>`;
+    const instrEl = `<div class="tp-instructor" data-editable data-key="instructor0" data-draggable>${instrsJoin}</div>`;
+    const wmEl = `<div class="tp-wm">${wm}</div>`;
+
+    const photoHTML = (idx) => {
+      const src = st.speakers[idx];
+      if (src) return `<img class="photo-img" src="${escapeHtml(src)}" alt="">`;
+      return `<div class="photo-ph">👤</div>`;
+    };
+
+    switch (tplId) {
+      case 1: return `
+        <div class="tp tp1">
+          <div class="tp-bar tp-bar-top"></div>
+          <div class="tp-content" style="${posStyle}">
+            ${brandEl}
+            <div class="tp-divider"></div>
+            ${courseEl}
+            ${title}
+            <div class="tp-divider" style="width:calc(280px * var(--u));"></div>
+            <div class="tp-label">Giảng viên</div>
+            ${instrEl}
+            ${dateEl}
+          </div>
+          <div class="tp-bar tp-bar-bottom"></div>
+          ${wmEl}
+        </div>`;
+      case 2: return `
+        <div class="tp tp2">
+          <div class="tp2-frame">
+            <div class="tp2-left">
+              <div>
+                <div class="tp-brand">XLEADERS</div>
+                <div class="tp-brand">ACADEMY</div>
+                <div class="tp-divider"></div>
+                <div class="tp-tagline">Đào tạo lãnh đạo</div>
+              </div>
+            </div>
+            <div class="tp2-right">
+              <div>
+                ${courseEl}
+                <div class="tp-accent-line"></div>
+                ${title}
+              </div>
+              <div class="tp-meta">
+                <div class="tp-label">Giảng viên</div>
+                ${instrEl}
+                ${dateEl}
+              </div>
+            </div>
+          </div>
+          ${wmEl}
+        </div>`;
+      case 3: return `
+        <div class="tp tp3">
+          <div class="tp3-frame"></div>
+          <div class="tp3-corner tp3-corner-tl"></div>
+          <div class="tp3-corner tp3-corner-tr"></div>
+          <div class="tp3-corner tp3-corner-bl"></div>
+          <div class="tp3-corner tp3-corner-br"></div>
+          <div class="tp-content" style="${posStyle}">
+            ${brandEl}
+            <div class="tp-divider"></div>
+            ${courseEl}
+            ${title}
+            <div class="tp-divider" style="width:calc(320px * var(--u));opacity:0.5;"></div>
+            <div class="tp-label">Giảng viên</div>
+            ${instrEl}
+            ${dateEl}
+          </div>
+          ${wmEl}
+        </div>`;
+      case 4: return `
+        <div class="tp tp4">
+          <div class="tp4-top">
+            ${brandEl}
+            ${courseEl}
+            <div class="tp-accent"></div>
+          </div>
+          <div class="tp4-bot">
+            ${title}
+            <div class="tp-meta">
+              ${instrEl}
+              ${dateEl}
+            </div>
+          </div>
+          ${wmEl}
+        </div>`;
+      case 5: return `
+        <div class="tp tp5">
+          <div class="tp-content" style="${posStyle}align-items:${pos.a};text-align:${st.align};">
+            <div class="tp-brand">XLEADERS ACADEMY</div>
+            <div class="tp-accent"></div>
+            ${courseEl}
+            ${title}
+            ${instrEl}
+            ${dateEl}
+          </div>
+          ${wmEl}
+        </div>`;
+      case 6: return `
+        <div class="tp tp6">
+          <div class="tp6-frame"></div>
+          <div class="tp6-inner-frame"></div>
+          <div class="tp-content" style="${posStyle}">
+            ${brandEl}
+            <div class="tp-divider"></div>
+            ${courseEl}
+            ${title}
+            <div class="tp-divider" style="width:calc(320px * var(--u));"></div>
+            <div class="tp-label">Giảng viên</div>
+            ${instrEl}
+            ${dateEl}
+          </div>
+          ${wmEl}
+        </div>`;
+      case 7: return `
+        <div class="tp tp7">
+          <div class="tp7-grid">
+            <div class="tp7-left">
+              <div class="tp-brand">XLEADERS ACADEMY</div>
+              ${title}
+              <div class="tp-tagline">Đào tạo lãnh đạo cấp cao</div>
+            </div>
+            <div class="tp7-right">
+              ${courseEl}
+              <hr />
+              <div class="tp-sub-title">Buổi học chuyên đề — trang bị tư duy, kỹ năng và công cụ quản trị thực chiến cho lãnh đạo.</div>
+              <hr />
+              <div class="tp-label">Giảng viên</div>
+              ${instrEl}
+              ${dateEl}
+            </div>
+          </div>
+          ${wmEl}
+        </div>`;
+      case 8: return `
+        <div class="tp tp8">
+          <div class="tp8-accent-bar"></div>
+          <div class="tp8-side-bar"></div>
+          <div class="tp-content" style="${posStyle}">
+            ${brandEl}
+            <div class="tp-divider"></div>
+            ${courseEl}
+            ${title}
+            <div class="tp-label">Giảng viên</div>
+            ${instrEl}
+            ${dateEl}
+          </div>
+          ${wmEl}
+        </div>`;
+      case 9: return `
+        <div class="tp tp9">
+          <div class="tp9-left">
+            ${brandEl}
+            <div class="tp-accent"></div>
+            ${courseEl}
+            ${title}
+            ${dateEl}
+          </div>
+          <div class="tp9-right">
+            <div class="tp9-photo photo-frame photo-1-1 photo-circle">${photoHTML(0)}</div>
+            <div class="tp-instructor-label">Giảng viên</div>
+            ${instrEl}
+          </div>
+          ${wmEl}
+        </div>`;
+      case 10: {
+        const slots = [0, 1, 2].map(i => {
+          const name = instrs[i] || '';
+          if (!state.speakers[i] && !name) return '';
+          return `<div class="tp10-speaker">
+            <div class="tp10-circle photo-frame photo-1-1 photo-circle">${photoHTML(i)}</div>
+            <div class="tp10-name">${escapeHtml(name) || '&nbsp;'}</div>
+          </div>`;
+        }).filter(Boolean).join('');
+        return `
+        <div class="tp tp10">
+          <div class="tp10-accent-bar"></div>
+          <div class="tp10-header">
+            <div class="tp-brand">XLEADERS ACADEMY</div>
+            ${courseEl}
+            ${title}
+            <div class="tp10-divider"></div>
+            ${dateEl}
+          </div>
+          <div class="tp10-speakers">${slots || '<div class="tp10-speaker"><div class="tp10-circle photo-frame photo-1-1 photo-circle"><div class="photo-ph">👥</div></div><div class="tp10-name">&nbsp;</div></div>'}</div>
+          ${wmEl}
+        </div>`;
+      }
+      case 11: return `
+        <div class="tp tp11">
+          <div class="tp11-photo photo-frame photo-fill">${photoHTML(0)}</div>
+          <div class="tp11-right">
+            <div class="tp-brand">XLEADERS ACADEMY</div>
+            <div class="tp-accent"></div>
+            ${courseEl}
+            ${title}
+            <div class="tp-meta">
+              <div class="tp-label">Giảng viên</div>
+              ${instrEl}
+              ${dateEl}
+            </div>
+          </div>
+          ${wmEl}
+        </div>`;
+    }
+    return '';
+  }
+
+  // ====== RENDER ======
+  function applyBannerVars() {
+    const s = SIZES[state.size];
+    const u = Math.min(s.w, s.h) / 1080;
+    banner.style.width = s.w + 'px';
+    banner.style.height = s.h + 'px';
+    banner.style.setProperty('--u', u);
+    banner.style.setProperty('--title-size', state.titleSize);
+    banner.style.setProperty('--sub-size', state.subSize);
+    banner.style.setProperty('--letter', state.letter);
+    banner.style.setProperty('--line', state.line);
+    banner.style.setProperty('--word', state.word);
+    banner.style.setProperty('--pad', state.pad);
+    banner.style.setProperty('--gap', state.gap);
+    banner.style.setProperty('--font-title', `'${state.fontTitle}', sans-serif`);
+    banner.style.setProperty('--font-body', `'${state.fontBody}', sans-serif`);
+    banner.style.setProperty('--align', state.align);
+    banner.style.setProperty('--img-pos', `center ${state.imgPos}%`);
+    banner.style.setProperty('--img-zoom', (state.imgZoom / 100).toString());
+  }
+
+  function render() {
+    applyBannerVars();
+    banner.innerHTML = buildHTML(state.template, state);
+    $('meta-size').innerHTML = `<strong>${SIZES[state.size].w} × ${SIZES[state.size].h} px</strong> — ${SIZES[state.size].label}`;
+    const t = TEMPLATES.find(x => x.id === state.template);
+    $('tpl-label').textContent = `${t.name} — ${t.desc}`;
+    fitToStage();
+    applyOffsets();
+    bindEditables();
+    checkOverflow();
+  }
+
+  function applyOffsets() {
+    Object.entries(state.offsets).forEach(([key, off]) => {
+      const el = banner.querySelector(`[data-key="${key}"]`);
+      if (el) el.style.transform = `translate(${off.x || 0}px, ${off.y || 0}px)`;
+    });
+  }
+
+  function fitToStage() {
+    const s = SIZES[state.size];
+    const style = getComputedStyle(stage);
+    const padX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    const padY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    const stageW = Math.max(stage.clientWidth - padX, 100);
+    const stageH = Math.max(stage.clientHeight - padY, 100);
+    const scale = Math.min(stageW / s.w, stageH / s.h, 1);
+    banner.style.transform = `scale(${scale})`;
+    wrap.style.width = (s.w * scale) + 'px';
+    wrap.style.height = (s.h * scale) + 'px';
+  }
+  window.addEventListener('resize', fitToStage);
+
+  // ====== OVERFLOW CHECK ======
+  function checkOverflow() {
+    const warn = $('warn-overflow');
+    let over = false;
+    banner.querySelectorAll('.tp-title, .tp-course, .tp-instructor').forEach(el => {
+      if (el.scrollHeight > el.clientHeight + 2 || el.scrollWidth > el.clientWidth + 2) over = true;
+    });
+    warn.classList.toggle('show', over);
+  }
+
+  // ====== AUTO-FIT ======
+  function autoFit() {
+    let size = state.titleSize;
+    let safety = 50;
+    while (size > 24 && safety-- > 0) {
+      applyBannerVars();
+      banner.innerHTML = buildHTML(state.template, state);
+      const el = banner.querySelector('.tp-title');
+      if (!el) break;
+      if (el.scrollHeight <= el.clientHeight + 2 && el.scrollWidth <= el.clientWidth + 2) break;
+      size -= 4;
+      state.titleSize = size;
+      banner.style.setProperty('--title-size', size);
+    }
+    state.titleSize = size;
+    syncUI();
+    render();
+    pushHistory();
+    showToast(`Đã căn chỉnh: cỡ tiêu đề = ${size}px`);
+  }
+
+  // ====== EDITABLE & DRAG ======
+  function bindEditables() {
+    banner.querySelectorAll('[data-editable]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        if (el.getAttribute('contenteditable') === 'true') return;
+        e.stopPropagation();
+        el.setAttribute('contenteditable', 'true');
+        el.focus();
+      });
+      el.addEventListener('blur', () => {
+        el.removeAttribute('contenteditable');
+        const key = el.dataset.key;
+        const text = el.innerText.trim();
+        if (key === 'topic') state.topic = text;
+        else if (key === 'course') state.course = text;
+        else if (key === 'date') state.date = text;
+        else if (key === 'instructor0') state.instructors[0] = text;
+        pushHistory();
+      });
+      el.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); el.blur(); }
+      });
+    });
+    banner.querySelectorAll('[data-draggable]').forEach(el => {
+      let dragging = false, sx = 0, sy = 0, ox = 0, oy = 0;
+      el.addEventListener('mousedown', (e) => {
+        if (el.getAttribute('contenteditable') === 'true') return;
+        e.preventDefault();
+        dragging = true;
+        sx = e.clientX; sy = e.clientY;
+        const key = el.dataset.key;
+        const off = state.offsets[key] || { x: 0, y: 0 };
+        ox = off.x; oy = off.y;
+      });
+      window.addEventListener('mousemove', (e) => {
+        if (!dragging) return;
+        const s = SIZES[state.size];
+        const scale = parseFloat(banner.style.transform.replace('scale(', '')) || 1;
+        const dx = (e.clientX - sx) / scale;
+        const dy = (e.clientY - sy) / scale;
+        const key = el.dataset.key;
+        state.offsets[key] = { x: ox + dx, y: oy + dy };
+        el.style.transform = `translate(${ox + dx}px, ${oy + dy}px)`;
+      });
+      window.addEventListener('mouseup', () => {
+        if (dragging) { dragging = false; pushHistory(); }
+      });
+    });
+  }
+
+  // ====== UI SYNC ======
+  function syncUI() {
+    $('course').value = state.course;
+    $('topic').value = state.topic;
+    $('instructor1').value = state.instructors[0] || '';
+    $('instructor2').value = state.instructors[1] || '';
+    $('instructor3').value = state.instructors[2] || '';
+    $('date').value = state.date;
+    $('size').value = state.size;
+    $('font-title').value = state.fontTitle;
+    $('font-body').value = state.fontBody;
+    $('title-size').value = state.titleSize;
+    $('title-size-val').textContent = state.titleSize + 'px';
+    $('sub-size').value = state.subSize;
+    $('sub-size-val').textContent = state.subSize + 'px';
+    $('letter').value = state.letter;
+    $('letter-val').textContent = state.letter + 'px';
+    $('line').value = state.line;
+    $('line-val').textContent = Number(state.line).toFixed(2);
+    $('word').value = state.word;
+    $('word-val').textContent = state.word + 'px';
+    $('pad').value = state.pad;
+    $('pad-val').textContent = state.pad + 'px';
+    $('gap').value = state.gap;
+    $('gap-val').textContent = state.gap + 'px';
+    $('jpg-q').value = state.jpgQ;
+    $('jpg-q-val').textContent = state.jpgQ + '%';
+    $('img-pos').value = state.imgPos;
+    $('img-pos-val').textContent = state.imgPos + '%';
+    $('img-zoom').value = state.imgZoom;
+    $('img-zoom-val').textContent = state.imgZoom + '%';
+    document.querySelectorAll('#align-group .btn-toggle').forEach(b => {
+      b.classList.toggle('on', b.dataset.align === state.align);
+    });
+    document.querySelectorAll('.pos-cell').forEach(c => {
+      c.classList.toggle('on', c.dataset.pos === state.pos);
+    });
+    document.querySelectorAll('.tpl').forEach(el => {
+      el.classList.toggle('active', parseInt(el.dataset.tpl, 10) === state.template);
+    });
+    // speakers
+    state.speakers.forEach((src, i) => {
+      const slot = document.querySelector(`.speaker-slot[data-slot="${i}"]`);
+      if (!slot) return;
+      const img = slot.querySelector('img');
+      if (img) img.remove();
+      slot.classList.toggle('has-img', !!src);
+      if (src) {
+        const im = document.createElement('img');
+        im.src = src;
+        slot.insertBefore(im, slot.querySelector('.ph'));
+      }
+    });
+  }
+
+  // ====== BUILD TEMPLATE PICKER ======
+  function buildTemplatePicker() {
+    const list = $('tpl-list');
+    list.innerHTML = '';
+    const g1 = TEMPLATES.filter(t => !t.needsImg);
+    const g2 = TEMPLATES.filter(t => t.needsImg);
+    list.insertAdjacentHTML('beforeend', `<div class="tpl-group-label">Không cần ảnh (8)</div>`);
+    g1.forEach(t => list.insertAdjacentHTML('beforeend', tplCard(t)));
+    list.insertAdjacentHTML('beforeend', `<div class="tpl-group-label">Có ảnh diễn giả (3)</div>`);
+    g2.forEach(t => list.insertAdjacentHTML('beforeend', tplCard(t)));
+    list.querySelectorAll('.tpl').forEach(el => {
+      el.addEventListener('click', () => {
+        state.template = parseInt(el.dataset.tpl, 10);
+        syncUI(); render(); pushHistory();
+      });
+    });
+  }
+  function tplCard(t) {
+    return `<div class="tpl" data-tpl="${t.id}">
+      <div class="tpl-swatch" style="${t.swatchCss}"></div>
+      ${t.name}<br><span style="font-weight:400;font-size:10px;">${t.desc}</span>
+    </div>`;
+  }
+
+  // ====== FONTS ======
+  const FONT_SAMPLE = "XLEADERS ACADEMY giảng viên ăâêôơưđ Đào tạo lãnh đạo 0123456789";
+  function fontSpecs() {
+    const families = ['Oswald', 'Inter', 'Playfair Display', 'Montserrat', 'Raleway', 'Lora'];
+    const specs = [];
+    families.forEach(f => {
+      [400, 500, 600, 700].forEach(w => specs.push(`${w} 40px '${f}'`));
+    });
+    return specs;
+  }
+  async function prepareFonts() {
+    if (!document.fonts || !document.fonts.load) return;
+    try {
+      await Promise.all(fontSpecs().map(s => document.fonts.load(s, FONT_SAMPLE)));
+      await document.fonts.ready;
+    } catch (_) {}
+    if (!allFontsReady()) {
+      await new Promise(r => setTimeout(r, 300));
+      try {
+        await Promise.all(fontSpecs().map(s => document.fonts.load(s, FONT_SAMPLE)));
+      } catch (_) {}
+    }
+  }
+  function allFontsReady() {
+    if (!document.fonts || !document.fonts.check) return true;
+    return fontSpecs().every(s => {
+      try { return document.fonts.check(s, FONT_SAMPLE); } catch (_) { return true; }
+    });
+  }
+
+  // ====== EXPORT ======
+  async function exportCanvas(tplOverride = null, scale = 1) {
+    if (typeof html2canvas !== 'function') throw new Error('html2canvas chưa tải');
+    await prepareFonts();
+    const s = SIZES[state.size];
+    // render to temp
+    const temp = document.createElement('div');
+    temp.className = 'banner';
+    const u = Math.min(s.w, s.h) / 1080;
+    temp.style.cssText = banner.style.cssText;
+    temp.style.transform = 'none';
+    temp.style.position = 'fixed';
+    temp.style.top = '-99999px';
+    temp.style.left = '0';
+    temp.style.width = s.w + 'px';
+    temp.style.height = s.h + 'px';
+    temp.innerHTML = buildHTML(tplOverride || state.template, state);
+    document.body.appendChild(temp);
+    try {
+      const cvs = await html2canvas(temp, {
+        width: s.w, height: s.h,
+        windowWidth: s.w, windowHeight: s.h,
+        scale: scale, backgroundColor: null, useCORS: true, logging: false
+      });
+      return cvs;
+    } finally {
+      document.body.removeChild(temp);
+    }
+  }
+  function canvasToBlob(cvs, type, quality) {
+    return new Promise(res => cvs.toBlob(res, type, quality));
+  }
+  function download(blob, name) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+  function exportName(ext) {
+    const course = sanitize(state.course) || 'XLeaders';
+    const topic = sanitize(state.topic).slice(0, 40) || 'Banner';
+    const s = SIZES[state.size];
+    return `XLeaders_Banner_${course}_${topic}_M${state.template}_${s.w}x${s.h}.${ext}`;
+  }
+
+  async function downloadPNG() {
+    const cvs = await exportCanvas(null, 2);
+    const blob = await canvasToBlob(cvs, 'image/png');
+    download(blob, exportName('png'));
+    showToast('Đã tải PNG 2x.');
+  }
+  async function downloadJPG() {
+    const cvs = await exportCanvas(null, 1);
+    const blob = await canvasToBlob(cvs, 'image/jpeg', state.jpgQ / 100);
+    download(blob, exportName('jpg'));
+    showToast(`Đã tải JPG (${state.jpgQ}%).`);
+  }
+  async function copyImage() {
+    const cvs = await exportCanvas(null, 1);
+    const blob = await canvasToBlob(cvs, 'image/png');
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      showToast('Đã sao chép vào clipboard.');
+    } catch (_) { showToast('Trình duyệt không hỗ trợ copy ảnh.'); }
+  }
+  async function downloadZIP() {
+    if (typeof JSZip !== 'function') { showToast('JSZip chưa tải'); return; }
+    const zip = new JSZip();
+    const course = sanitize(state.course) || 'XLeaders';
+    for (const t of TEMPLATES) {
+      showToast(`Đang xuất mẫu ${t.id}/11...`);
+      const cvs = await exportCanvas(t.id, 1);
+      const blob = await canvasToBlob(cvs, 'image/png');
+      const s = SIZES[state.size];
+      zip.file(`M${String(t.id).padStart(2,'0')}_${course}_${s.w}x${s.h}.png`, blob);
+    }
+    const out = await zip.generateAsync({ type: 'blob' });
+    download(out, `XLeaders_Banners_ALL_${course}_${SIZES[state.size].w}x${SIZES[state.size].h}.zip`);
+    showToast('Đã tải ZIP 11 mẫu.');
+  }
+
+  // ====== PRESET ======
+  const PRESET_KEY = 'xleaders.banner.preset';
+  function savePreset() {
+    try {
+      localStorage.setItem(PRESET_KEY, JSON.stringify(state));
+      showToast('Đã lưu preset.');
+    } catch (_) { showToast('Không lưu được preset.'); }
+  }
+  function loadPreset() {
+    try {
+      const raw = localStorage.getItem(PRESET_KEY);
+      if (!raw) { showToast('Chưa có preset nào.'); return; }
+      state = Object.assign({}, DEFAULT_STATE, JSON.parse(raw));
+      syncUI(); render(); pushHistory();
+      showToast('Đã tải preset.');
+    } catch (_) { showToast('Preset lỗi.'); }
+  }
+  function resetState() {
+    state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+    const d = new Date();
+    state.date = `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    syncUI(); render(); pushHistory();
+    showToast('Đã reset về mặc định.');
+  }
+
+  // ====== BIND UI ======
+  function bindUI() {
+    // accordion
+    document.querySelectorAll('.acc-hd').forEach(h => {
+      h.addEventListener('click', () => h.parentElement.classList.toggle('closed'));
+    });
+
+    // inputs
+    const bindText = (id, key) => {
+      $(id).addEventListener('input', (e) => { state[key] = e.target.value; render(); });
+      $(id).addEventListener('change', pushHistory);
+    };
+    bindText('course', 'course');
+    bindText('topic', 'topic');
+    bindText('date', 'date');
+    [0, 1, 2].forEach(i => {
+      $('instructor' + (i + 1)).addEventListener('input', (e) => { state.instructors[i] = e.target.value; render(); });
+      $('instructor' + (i + 1)).addEventListener('change', pushHistory);
+    });
+
+    $('size').addEventListener('change', (e) => { state.size = e.target.value; render(); pushHistory(); });
+    $('font-title').addEventListener('change', (e) => { state.fontTitle = e.target.value; render(); pushHistory(); });
+    $('font-body').addEventListener('change', (e) => { state.fontBody = e.target.value; render(); pushHistory(); });
+
+    const bindRange = (id, key, label, fmt) => {
+      $(id).addEventListener('input', (e) => {
+        state[key] = parseFloat(e.target.value);
+        $(label).textContent = fmt(state[key]);
+        render();
+      });
+      $(id).addEventListener('change', pushHistory);
+    };
+    bindRange('title-size', 'titleSize', 'title-size-val', v => v + 'px');
+    bindRange('sub-size', 'subSize', 'sub-size-val', v => v + 'px');
+    bindRange('letter', 'letter', 'letter-val', v => v + 'px');
+    bindRange('line', 'line', 'line-val', v => Number(v).toFixed(2));
+    bindRange('word', 'word', 'word-val', v => v + 'px');
+    bindRange('pad', 'pad', 'pad-val', v => v + 'px');
+    bindRange('gap', 'gap', 'gap-val', v => v + 'px');
+    bindRange('jpg-q', 'jpgQ', 'jpg-q-val', v => v + '%');
+    bindRange('img-pos', 'imgPos', 'img-pos-val', v => v + '%');
+    bindRange('img-zoom', 'imgZoom', 'img-zoom-val', v => v + '%');
+
+    document.querySelectorAll('#align-group .btn-toggle').forEach(b => {
+      b.addEventListener('click', () => {
+        state.align = b.dataset.align;
+        syncUI(); render(); pushHistory();
+      });
+    });
+    document.querySelectorAll('.pos-cell').forEach(c => {
+      c.addEventListener('click', () => {
+        state.pos = c.dataset.pos;
+        syncUI(); render(); pushHistory();
+      });
+    });
+
+    // speakers
+    document.querySelectorAll('.speaker-slot').forEach(slot => {
+      const idx = parseInt(slot.dataset.slot, 10);
+      const input = slot.querySelector('input[type="file"]');
+      const rm = slot.querySelector('.remove-x');
+      input.addEventListener('change', (e) => {
+        const f = e.target.files && e.target.files[0];
+        if (!f) return;
+        const fr = new FileReader();
+        fr.onload = () => {
+          state.speakers[idx] = fr.result;
+          syncUI(); render(); pushHistory();
+        };
+        fr.readAsDataURL(f);
+      });
+      rm.addEventListener('click', (e) => {
+        e.preventDefault(); e.stopPropagation();
+        state.speakers[idx] = null;
+        input.value = '';
+        syncUI(); render(); pushHistory();
+      });
+    });
+
+    // buttons
+    $('btn-render').addEventListener('click', async () => {
+      await prepareFonts(); render(); showToast('Đã tạo preview.');
+    });
+    $('btn-png').addEventListener('click', () => wrapLoad(downloadPNG));
+    $('btn-jpg').addEventListener('click', () => wrapLoad(downloadJPG));
+    $('btn-copy').addEventListener('click', () => wrapLoad(copyImage));
+    $('btn-zip').addEventListener('click', () => wrapLoad(downloadZIP));
+    $('btn-autofit').addEventListener('click', autoFit);
+    $('btn-save-preset').addEventListener('click', savePreset);
+    $('btn-load-preset').addEventListener('click', loadPreset);
+    $('btn-reset').addEventListener('click', () => { if (confirm('Reset toàn bộ về mặc định?')) resetState(); });
+
+    // rulers
+    stage.addEventListener('mousemove', (e) => {
+      const rect = stage.getBoundingClientRect();
+      $('ruler-h').style.top = (e.clientY - rect.top) + 'px';
+      $('ruler-v').style.left = (e.clientX - rect.left) + 'px';
+    });
+
+    // keyboard
+    window.addEventListener('keydown', (e) => {
+      const inInput = /INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName) || document.activeElement.getAttribute('contenteditable') === 'true';
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault(); undo();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.key.toLowerCase() === 'z' && e.shiftKey))) {
+        e.preventDefault(); redo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+        e.preventDefault(); wrapLoad(downloadPNG);
+      } else if (e.code === 'Space' && !inInput) {
+        e.preventDefault(); prepareFonts().then(() => { render(); showToast('Đã tạo preview.'); });
+      }
+    });
+  }
+
+  async function wrapLoad(fn) {
+    try { await fn(); } catch (e) { showToast('Lỗi: ' + (e.message || 'không rõ')); }
+  }
+
+  // ====== INIT ======
+  buildTemplatePicker();
+  bindUI();
+  syncUI();
+  prepareFonts().then(() => {
+    render();
+    pushHistory();
+  });
+})();
+</script>
+
+</body>
+</html>
